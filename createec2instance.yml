@@ -1,0 +1,35 @@
+Description:
+  This Script Creates a Security Group and an EC2 Instance in a Public Subnet in a VPC in the AWS Cloud.
+Resources:
+  MyWebAccessSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: "Security Group to Allow Inbound traffic on port 80 and unrestricted outbound traffic"
+      GroupName: "EC2SecurityGroup"
+      VpcId: "vpc-cab4e6b2"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+  MyWebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: "ami-06e85d4c3149db26a"
+      InstanceType: "t3.micro"
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Ref: "MyWebAccessSecurityGroup"
+          SubnetId: "subnet-270cb27a"
+      UserData: 
+        Fn::Base64: !Sub |
+         #!/bin/bash
+         sudo yum update -y
+         sudo yum install -y httpd
+         sudo systemctl start httpd
+         sudo systemctl enable httpd
